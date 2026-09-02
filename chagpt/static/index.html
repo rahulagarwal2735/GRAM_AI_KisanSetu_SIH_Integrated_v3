@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GRAM AI • KisanSetu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/static/style.css?v=v3">
+</head>
+<body>
+<div id="toast" class="toast hidden"></div>
+
+<section id="auth" class="auth-shell">
+  <div class="auth-hero">
+    <div class="brand"><div class="brand-mark">G</div><div><b>GRAM AI</b><small>KISANSETU - Empowering hands that feed our NATION.  </small></div></div>
+    <div class="hero-copy">
+      <span class="pill">MAHARASHTRA FIRST • PAN-INDIA READY</span>
+      <h1 data-i18n="heroTitle">Better selling decisions, not just market prices.</h1>
+      <p data-i18n="heroText">Forecast prices, verify quality, compare net income, connect with trusted buyers, pre-order harvests and protect transactions.</p>
+      <div class="hero-flow"><span>🌾 Forecast</span><span>🤝 Pre-order</span><span>🔒 KYC</span><span>💳 Secure Pay</span><span>🛡 GramRakshak</span></div>
+    </div>
+  </div>
+
+  <div class="auth-panel">
+    <div class="auth-top"><div><b>GRAM AI</b><small data-i18n="secureAccess">Secure role-based access</small></div><select id="authLang" onchange="setLanguage(this.value)"></select></div>
+    <h2 data-i18n="loginAs">Login as whom?</h2>
+    <div class="role-picker" id="rolePicker">
+      <button onclick="selectRole('farmer')" data-role="farmer"><span>👨‍🌾</span><b data-i18n="farmer">Farmer</b><small data-i18n="farmerHint">Sell smarter</small></button>
+      <button onclick="selectRole('buyer')" data-role="buyer"><span>🏢</span><b data-i18n="buyer">Buyer</b><small data-i18n="buyerHint">Source reliably</small></button>
+      <button onclick="selectRole('admin')" data-role="admin"><span>🛡️</span><b data-i18n="admin">Admin</b><small data-i18n="adminHint">Maintain platform</small></button>
+    </div>
+    <div class="chosen-role"><span data-i18n="selectedRole">Selected role</span>: <b id="selectedRoleLabel">Farmer</b></div>
+
+    <div class="tabs"><button id="loginTab" class="active" onclick="showAuthMode('login')" data-i18n="login">Login</button><button id="registerTab" onclick="showAuthMode('register')" data-i18n="register">Register</button></div>
+
+    <div id="loginBox">
+      <div class="method-tabs"><button id="emailMethod" class="active" onclick="showLoginMethod('email')" data-i18n="emailPassword">Email + Password</button><button id="otpMethod" onclick="showLoginMethod('otp')" data-i18n="mobileOtp">Mobile + OTP</button></div>
+      <div id="emailBox">
+        <label data-i18n="email">Email</label><input class="control" id="email" type="email" value="farmer@gram.ai">
+        <label data-i18n="password">Password</label><input class="control" id="password" type="password" value="Farmer@123">
+        <button class="primary" onclick="login()" data-i18n="login">Login</button>
+      </div>
+      <div id="otpBox" class="hidden">
+        <label data-i18n="mobile">Mobile Number</label><input class="control" id="loginPhone" inputmode="numeric" maxlength="10" placeholder="10-digit mobile">
+        <button class="secondary wide" onclick="sendOtp()" data-i18n="sendOtp">Send OTP</button>
+        <div id="otpEntry" class="hidden"><label data-i18n="otp">6-digit OTP</label><input class="control" id="loginOtp" inputmode="numeric" maxlength="6"><button class="primary" onclick="verifyOtp()" data-i18n="verifyLogin">Verify & Login</button></div>
+        <small id="otpMessage"></small>
+      </div>
+      <div id="authMessage" class="form-msg"></div>
+      <div class="security-note">🔐 <span data-i18n="kycNote">KYC/Aadhaar-ready verification is available after login. Full Aadhaar numbers are never stored.</span></div>
+    </div>
+
+    <div id="registerBox" class="hidden">
+      <label data-i18n="name">Full Name</label><input class="control" id="rName">
+      <label data-i18n="email">Email</label><input class="control" id="rEmail" type="email">
+      <label data-i18n="mobile">Mobile Number</label><input class="control" id="rPhone" maxlength="10">
+      <label data-i18n="district">District</label><input class="control" id="rDistrict" value="Pune">
+      <label data-i18n="state">State</label><input class="control" id="rState" value="Maharashtra">
+      <button class="primary" onclick="registerUser()" data-i18n="register">Register</button><div id="regMessage" class="form-msg"></div>
+    </div>
+
+    <div class="demo-box"><b>Demo</b><span>Farmer: farmer@gram.ai / Farmer@123</span><span>Buyer: buyer@gram.ai / Buyer@123</span><span>Admin: admin@gram.ai / Admin@123</span></div>
+  </div>
+</section>
+
+<section id="appShell" class="app-shell hidden">
+  <aside>
+    <div class="side-brand"><div class="brand-mark small">G</div><div><b>GRAM AI</b><small id="portalName">Farmer Portal</small></div></div>
+    <nav id="nav"></nav>
+    <div class="side-foot"><button class="nav-btn" onclick="logout()">↪ <span data-i18n="logout">Logout</span></button></div>
+  </aside>
+  <main>
+    <header>
+      <div><small id="breadcrumb">GRAM AI</small><h1 id="pageTitle">Dashboard</h1></div>
+      <div class="header-controls">
+        <label class="compact">📍 <select id="stateSelect" onchange="changeState(this.value)"></select></label>
+        <label class="compact">🌐 <select id="langSelect" onchange="setLanguage(this.value)"></select></label>
+        <button class="user-chip" onclick="openProfile()"><span id="userInitial">U</span><div><b id="userName">User</b><small id="userRole">Farmer</small></div></button>
+      </div>
+    </header>
+    <div id="content"></div>
+  </main>
+</section>
+
+<button id="chatFab" class="chat-fab hidden" onclick="toggleChat()">💬</button>
+<div id="chatPanel" class="chat-panel hidden">
+  <div class="chat-head"><div><b>GRAM Saathi</b><small data-i18n="chatHint">Ask in your language</small></div><button onclick="toggleChat()">×</button></div>
+  <div id="chatMessages" class="chat-messages"><div class="bot" data-i18n="chatWelcome">Namaste! Ask me about prices, pre-orders, payments, transport, rewards or complaints.</div></div>
+  <div class="chat-compose"><button class="mic" onclick="voiceInto('chatInput')">🎙</button><input id="chatInput" data-voice placeholder="Ask GRAM Saathi"><button onclick="sendChat()">➤</button></div>
+</div>
+
+<div id="modal" class="modal hidden"><div class="modal-card"><button class="modal-close" onclick="closeModal()">×</button><div id="modalBody"></div></div></div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/app.js?v=v3"></script>
+</body>
+</html>
